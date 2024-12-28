@@ -1,4 +1,5 @@
-name: Build & Package (Deb)
+name: Build Ghostty Debian package
+
 on:
   # Trigger on newly published releases
   release:
@@ -10,24 +11,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out Ghostty source
+      # 1) Check out the Ghostty code from ghostty-org/ghostty
       - name: Check out Ghostty source
         uses: actions/checkout@v3
         with:
           repository: ghostty-org/ghostty
+          # Use the release tag name that triggered this workflow
           ref: ${{ github.event.release.tag_name }}
           path: ghostty
 
-      - name: Print files
-        run: ls -la ghostty
-
-      # 2. Set up the environment (Dockerfile approach)
+      # 2) Create Dockerfile (with Zig 0.13.0 + dependencies)
       - name: Create Dockerfile
         run: |
-          cat << 'EOF' > Dockerfile
+          cat <<EOF > Dockerfile
           FROM ubuntu:24.04
 
-          # --- Build arguments to parametrize Dockerfile ---
           ARG ARCH=x86_64
           ARG ZIG_VERSION=0.13.0
           ARG ZIG_DL_URL="https://ziglang.org/download/${ZIG_VERSION}/zig-linux-${ARCH}-${ZIG_VERSION}.tar.xz"
@@ -68,28 +66,21 @@ jobs:
       - name: Build Ghostty
         run: |
           docker run --rm \
-            -v "${{ github.workspace }}":/workspace \
-            -w /workspace \
+            -v "${{ github.workspace }}:/workspace" \
+            -w /workspace/ghostty \
             ghostty-builder:latest \
             bash -c "
-              git clone https://github.com/ghostty-org/ghostty.git ghostty-src && \
-              cd ghostty-src && \
-              git checkout ${{ github.event.release.tag_name }} && \
               /opt/zig-linux-x86_64-0.13.0/zig build -p build -Doptimize=ReleaseFast
             "
 
-      # 5. Package Ghostty into a .deb
+      # 5) Create .deb package
       - name: Create .deb package
         run: |
-          # We'll use a simple manual approach with dpkg-deb.
-          # Adjust names/versions as you like.
-
-          # For demonstration, assume the ghostty binary is named `ghostty` in `build/`.
           VERSION="${{ github.event.release.tag_name }}"
           ARCH="amd64"   # Debian/Ubuntu calls x86_64 'amd64'
           
-          mkdir -p pkg/usr/bin
-          cp ghostty-src/build/ghostty pkg/usr/bin/ghostty
+          mkdir -p pkg/
+          cp -av ghostty/build pkg/usr
 
           mkdir -p pkg/DEBIAN
           cat <<CONTROL > pkg/DEBIAN/control
