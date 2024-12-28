@@ -28,9 +28,8 @@ jobs:
 
           ARG ARCH=x86_64
           ARG ZIG_VERSION=0.13.0
-          ARG ZIG_DL_URL="https://ziglang.org/download/${ZIG_VERSION}/zig-linux-${ARCH}-${ZIG_VERSION}.tar.xz"
+          ARG ZIG_DL_URL="https://ziglang.org/download/\${ZIG_VERSION}/zig-linux-\${ARCH}-\${ZIG_VERSION}.tar.xz"
 
-          # Install dependencies
           RUN apt-get update && \
               apt-get install -y --no-install-recommends \
                 curl \
@@ -42,18 +41,17 @@ jobs:
                 ca-certificates && \
               rm -rf /var/lib/apt/lists/*
 
-          # Download and extract Zig
+          # Download & extract Zig
           RUN mkdir -p /opt && \
-              curl -L ${ZIG_DL_URL} | tar -xJ -C /opt
+              curl -L \${ZIG_DL_URL} | tar -xJ -C /opt
 
-          # For convenience, add Zig to PATH
-          ENV ZIG_HOME=/opt/zig-linux-${ARCH}-${ZIG_VERSION}
-          ENV PATH="$ZIG_HOME:$PATH"
+          ENV ZIG_HOME=/opt/zig-linux-\${ARCH}-\${ZIG_VERSION}
+          ENV PATH="\$ZIG_HOME:\$PATH"
 
           WORKDIR /workspace
           EOF
 
-      # 3. Build the Docker image
+      # 3) Build Docker image
       - name: Build Docker image
         run: |
           docker build \
