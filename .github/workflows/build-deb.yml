@@ -93,14 +93,14 @@ jobs:
 
           mkdir -p pkg/DEBIAN
           cat <<CONTROL > pkg/DEBIAN/control
-Package: ghostty
-Version: ${VERSION#v}           # remove 'v' prefix, e.g. v1.0.0 -> 1.0.0
-Section: utils
-Priority: optional
-Architecture: ${ARCH}
-Maintainer: Ghostty <contact@ghostty.org>
-Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native.
-CONTROL
+          Package: ghostty
+          Version: ${VERSION#v}           # remove 'v' prefix, e.g. v1.0.0 -> 1.0.0
+          Section: utils
+          Priority: optional
+          Architecture: ${ARCH}
+          Maintainer: Ghostty <contact@ghostty.org>
+          Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native.
+          CONTROL
 
           # Build the .deb package
           dpkg-deb --build pkg ghostty-${VERSION}-${ARCH}.deb
