@@ -1,0 +1,115 @@
+name: Build & Package (Deb)
+on:
+  # Trigger on newly published releases
+  release:
+    types: [published]
+
+jobs:
+  build-deb:
+    name: Build Ghostty .deb
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out Ghostty source
+      - name: Check out Ghostty source
+        uses: actions/checkout@v3
+        with:
+          repository: ghostty-org/ghostty
+          ref: ${{ github.event.release.tag_name }}
+          path: ghostty
+
+      - name: Print files
+        run: ls -la ghostty
+
+      # 2. Set up the environment (Dockerfile approach)
+      - name: Create Dockerfile
+        run: |
+          cat << 'EOF' > Dockerfile
+          FROM ubuntu:24.04
+
+          # --- Build arguments to parametrize Dockerfile ---
+          ARG ARCH=x86_64
+          ARG ZIG_VERSION=0.13.0
+          ARG ZIG_DL_URL="https://ziglang.org/download/${ZIG_VERSION}/zig-linux-${ARCH}-${ZIG_VERSION}.tar.xz"
+
+          # Install dependencies
+          RUN apt-get update && \
+              apt-get install -y --no-install-recommends \
+                curl \
+                xz-utils \
+                git \
+                libgtk-4-dev \
+                libadwaita-1-dev \
+                dpkg-dev \
+                ca-certificates && \
+              rm -rf /var/lib/apt/lists/*
+
+          # Download and extract Zig
+          RUN mkdir -p /opt && \
+              curl -L ${ZIG_DL_URL} | tar -xJ -C /opt
+
+          # For convenience, add Zig to PATH
+          ENV ZIG_HOME=/opt/zig-linux-${ARCH}-${ZIG_VERSION}
+          ENV PATH="$ZIG_HOME:$PATH"
+
+          WORKDIR /workspace
+          EOF
+
+      # 3. Build the Docker image
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg ARCH="x86_64" \
+            --build-arg ZIG_VERSION="0.13.0" \
+            -t ghostty-builder:latest \
+            .
+
+      # 4. Run the container and build Ghostty
+      - name: Build Ghostty
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}":/workspace \
+            -w /workspace \
+            ghostty-builder:latest \
+            bash -c "
+              git clone https://github.com/ghostty-org/ghostty.git ghostty-src && \
+              cd ghostty-src && \
+              git checkout ${{ github.event.release.tag_name }} && \
+              /opt/zig-linux-x86_64-0.13.0/zig build -p build -Doptimize=ReleaseFast
+            "
+
+      # 5. Package Ghostty into a .deb
+      - name: Create .deb package
+        run: |
+          # We'll use a simple manual approach with dpkg-deb.
+          # Adjust names/versions as you like.
+
+          # For demonstration, assume the ghostty binary is named `ghostty` in `build/`.
+          VERSION="${{ github.event.release.tag_name }}"
+          ARCH="amd64"   # Debian/Ubuntu calls x86_64 'amd64'
+          
+          mkdir -p pkg/usr/bin
+          cp ghostty-src/build/ghostty pkg/usr/bin/ghostty
+
+          mkdir -p pkg/DEBIAN
+          cat <<CONTROL > pkg/DEBIAN/control
+Package: ghostty
+Version: ${VERSION#v}           # remove 'v' prefix, e.g. v1.0.0 -> 1.0.0
+Section: utils
+Priority: optional
+Architecture: ${ARCH}
+Maintainer: Ghostty <contact@ghostty.org>
+Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native.
+CONTROL
+
+          # Build the .deb package
+          dpkg-deb --build pkg ghostty-${VERSION}-${ARCH}.deb
+
+      # 6. Upload artifact (optional)
+      # This step will allow you to download the .deb file from the build artifacts
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ghostty-deb
+          path: ghostty-*.deb
+
