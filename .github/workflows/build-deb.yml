@@ -104,6 +104,6 @@ jobs:
         with:
           # The upload_url for the *current* release is available from the event payload
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ghostty-${VERSION}-${ARCH}.deb
-          asset_name: ghostty-${VERSION}-${ARCH}.deb
+          asset_path: ghostty-${{ env.VERSION }}-${{ env.ARCH }}.deb
+          asset_name: ghostty-${{ env.VERSION }}-${{ env.ARCH }}.deb
           asset_content_type: application/octet-stream
