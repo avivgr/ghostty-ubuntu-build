@@ -89,8 +89,6 @@ jobs:
           Architecture: ${ARCH}
           Maintainer: Ghostty <contact@ghostty.org>
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
-          While there are many excellent terminal emulators available, they all force you to choose between speed, features, 
-          or native UIs. Ghostty provides all three.
           EOF
 
           dpkg-deb --build pkg ghostty-${VERSION#v}-${ARCH}.deb
