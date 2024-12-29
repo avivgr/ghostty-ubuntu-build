@@ -91,11 +91,12 @@ jobs:
           Section: utils
           Priority: optional
           Architecture: ${ARCH}
+          Depends: \${shlibs:Depends}
           Maintainer: Ghostty <contact@ghostty.org>
-          Depends: libgtk-4-1, libadwaita-1-0
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
           EOF
 
+          dpkg-shlibdeps -O pkg/usr/bin/ghostty
           dpkg-deb --build pkg ghostty-${VERSION}-${UBUNTU_VERSION}-${ARCH}.deb
 
       # 6) Upload .deb as a release asset
