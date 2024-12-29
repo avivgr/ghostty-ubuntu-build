@@ -93,10 +93,14 @@ jobs:
 
           dpkg-deb --build pkg ghostty-${VERSION#v}-${ARCH}.deb
 
-      # 6) Upload .deb as an artifact
-      - name: Upload .deb artifact
-        uses: actions/upload-artifact@v3
+      # 6) Upload .deb as a release asset
+      - name: Upload .deb to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: ghostty-deb
-          path: ghostty-*.deb
-
+          # The upload_url for the *current* release is available from the event payload
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ghostty-${VERSION#v}-${ARCH}.deb
+          asset_name: ghostty-${VERSION#v}-${ARCH}.deb
+          asset_content_type: application/octet-stream
