@@ -88,10 +88,11 @@ jobs:
           Priority: optional
           Architecture: ${ARCH}
           Maintainer: Ghostty <contact@ghostty.org>
+          Depends: libgtk-4-1, libadwaita-1-0
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
           EOF
 
-          dpkg-deb --build pkg ghostty-${VERSION#v}-${ARCH}.deb
+          dpkg-deb --build pkg ghostty-${VERSION}-${ARCH}.deb
 
       # 6) Upload .deb as a release asset
       - name: Upload .deb to GitHub Release
@@ -99,6 +100,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.event.release.tag_name }}
+          ARCH: "amd64"
         with:
           # The upload_url for the *current* release is available from the event payload
           upload_url: ${{ github.event.release.upload_url }}
