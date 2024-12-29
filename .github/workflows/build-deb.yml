@@ -7,8 +7,11 @@ on:
 
 jobs:
   build-deb:
-    name: Build Ghostty .deb for ubuntu 24.04
+    name: Build Ghostty .deb for ubuntu ${{ matrix.ubuntu_version }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ubuntu_version: ["22.04", "24.04"]
 
     steps:
       # 1) Check out the Ghostty code from ghostty-org/ghostty
@@ -24,7 +27,7 @@ jobs:
       - name: Create Dockerfile
         run: |
           cat <<EOF > Dockerfile
-          FROM ubuntu:24.04
+          FROM ubuntu:${{ matrix.ubuntu_version }}
 
           ARG ARCH=x86_64
           ARG ZIG_VERSION=0.13.0
@@ -76,6 +79,7 @@ jobs:
         run: |
           VERSION="${{ github.event.release.tag_name }}"
           ARCH="amd64"  # Debian/Ubuntu naming for x86_64
+          UBUNTU_VERSION="${{ matrix.ubuntu_version }}"
           
           mkdir -p pkg/
           cp -av ghostty/build pkg/usr
@@ -92,7 +96,7 @@ jobs:
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
           EOF
 
-          dpkg-deb --build pkg ghostty-${VERSION}-${ARCH}.deb
+          dpkg-deb --build pkg ghostty-${VERSION}-${UBUNTU_VERSION}-${ARCH}.deb
 
       # 6) Upload .deb as a release asset
       - name: Upload .deb to GitHub Release
@@ -101,9 +105,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ github.event.release.tag_name }}
           ARCH: "amd64"
+          UBUNTU_VERSION: "${{ matrix.ubuntu_version }}"
         with:
           # The upload_url for the *current* release is available from the event payload
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ghostty-${{ env.VERSION }}-${{ env.ARCH }}.deb
-          asset_name: ghostty-${{ env.VERSION }}-${{ env.ARCH }}.deb
+          asset_path: ghostty-${{ env.VERSION }}-${{ env.UBUNTU_VERSION }}-${{ env.ARCH }}.deb
+          asset_name: ghostty-${{ env.VERSION }}-${{ env.UBUNTU_VERSION }}-${{ env.ARCH }}.deb
           asset_content_type: application/octet-stream
