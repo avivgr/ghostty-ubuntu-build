@@ -1,14 +1,3 @@
-Below is an example **README.md** that you can include in your **build repository** (the repo that hosts the GitHub Actions workflow). It explains:
-
-- What the workflow does  
-- How it is triggered  
-- Where the generated binaries come from  
-- How the release tags relate to the original Ghostty project.
-
-Feel free to modify the wording or formatting as needed.
-
----
-
 # Ghostty Debian Package Build
 
 This repository hosts a **GitHub Actions workflow** (see [`.github/workflows/build-deb.yml`](.github/workflows/build-deb.yml)) that automatically builds **Ghostty** from source and packages it into a Debian (`.deb`) package.
