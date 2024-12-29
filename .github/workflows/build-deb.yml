@@ -98,9 +98,10 @@ jobs:
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ github.event.release.tag_name }}
         with:
           # The upload_url for the *current* release is available from the event payload
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ghostty-${VERSION#v}-${ARCH}.deb
-          asset_name: ghostty-${VERSION#v}-${ARCH}.deb
+          asset_path: ghostty-${VERSION}-${ARCH}.deb
+          asset_name: ghostty-${VERSION}-${ARCH}.deb
           asset_content_type: application/octet-stream
