@@ -71,7 +71,7 @@ jobs:
             -w /workspace/ghostty \
             ghostty-builder:latest \
             bash -c "
-              /opt/zig-linux-x86_64-0.13.0/zig build -p build -Doptimize=ReleaseFast
+              /opt/zig-linux-x86_64-0.13.0/zig build -p build-${{ matrix.ubuntu_version }} -Doptimize=ReleaseFast
             "
 
       # 5) Create .deb package
@@ -80,12 +80,13 @@ jobs:
           VERSION="${{ github.event.release.tag_name }}"
           ARCH="amd64"  # Debian/Ubuntu naming for x86_64
           UBUNTU_VERSION="${{ matrix.ubuntu_version }}"
+          PKG_ROOT=pkg/${UBUNTU_VERSION}
           
-          mkdir -p pkg/
-          cp -av ghostty/build pkg/usr
+          mkdir -p ${PKG_ROOT}
+          cp -av ghostty/build-{${UBUNTU_VERSION} ${PKG_ROOT}/usr
 
-          mkdir -p pkg/DEBIAN
-          cat <<EOF > pkg/DEBIAN/control
+          mkdir -p ${PKG_ROOT}/DEBIAN
+          cat <<EOF > ${PKG_ROOT}/DEBIAN/control
           Package: ghostty
           Version: ${VERSION#v}
           Section: utils
@@ -96,8 +97,8 @@ jobs:
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
           EOF
 
-          dpkg-shlibdeps -O pkg/usr/bin/ghostty
-          dpkg-deb --build pkg ghostty-${VERSION}-${UBUNTU_VERSION}-${ARCH}.deb
+          dpkg-shlibdeps -O ${PKG_ROOT}/usr/bin/ghostty
+          dpkg-deb --build ${PKG_ROOT} ghostty-${VERSION}-${UBUNTU_VERSION}-${ARCH}.deb
 
       # 6) Upload .deb as a release asset
       - name: Upload .deb to GitHub Release
