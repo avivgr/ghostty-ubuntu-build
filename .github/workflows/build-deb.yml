@@ -86,8 +86,8 @@ jobs:
           mkdir -p ${PKG_ROOT}
           cp -av ghostty/build-${UBUNTU_VERSION} ${PKG_ROOT}/usr
 
-          mkdir -p ${PKG_ROOT}/debian
-          cat <<EOF > ${PKG_ROOT}/debian/control
+          mkdir -p ${PKG_ROOT}/DEBIAN
+          cat <<EOF > ${PKG_ROOT}/DEBIAN/control
           Package: ghostty
           Version: ${VERSION#v}
           Section: utils
