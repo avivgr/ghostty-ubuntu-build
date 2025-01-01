@@ -83,7 +83,7 @@ jobs:
           PKG_ROOT=pkg/${UBUNTU_VERSION}
           
           mkdir -p ${PKG_ROOT}
-          cp -av ghostty/build-{${UBUNTU_VERSION} ${PKG_ROOT}/usr
+          cp -av ghostty/build-${UBUNTU_VERSION} ${PKG_ROOT}/usr
 
           mkdir -p ${PKG_ROOT}/DEBIAN
           cat <<EOF > ${PKG_ROOT}/DEBIAN/control
