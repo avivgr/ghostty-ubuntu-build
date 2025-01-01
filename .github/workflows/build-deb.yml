@@ -75,6 +75,7 @@ jobs:
             "
 
       # 5) Create .deb package
+      # 24.04 Depends=libadwaita-1-0 (>= 1.5~beta), libc6 (>= 2.38), libglib2.0-0t64 (>= 2.42.0), libgtk-4-1 (>= 4.3.1), libx11-6
       - name: Create .deb package
         run: |
           VERSION="${{ github.event.release.tag_name }}"
@@ -85,19 +86,17 @@ jobs:
           mkdir -p ${PKG_ROOT}
           cp -av ghostty/build-${UBUNTU_VERSION} ${PKG_ROOT}/usr
 
-          mkdir -p ${PKG_ROOT}/DEBIAN
-          cat <<EOF > ${PKG_ROOT}/DEBIAN/control
+          mkdir -p ${PKG_ROOT}/debian
+          cat <<EOF > ${PKG_ROOT}/debian/control
           Package: ghostty
           Version: ${VERSION#v}
           Section: utils
           Priority: optional
           Architecture: ${ARCH}
-          Depends: \${shlibs:Depends}
           Maintainer: Ghostty <contact@ghostty.org>
           Description: Ghostty is a terminal emulator that differentiates itself by being fast, feature-rich, and native. 
           EOF
 
-          dpkg-shlibdeps -O ${PKG_ROOT}/usr/bin/ghostty
           dpkg-deb --build ${PKG_ROOT} ghostty-${VERSION}-${UBUNTU_VERSION}-${ARCH}.deb
 
       # 6) Upload .deb as a release asset
